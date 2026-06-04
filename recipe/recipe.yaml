@@ -1,0 +1,69 @@
+schema_version: 1
+
+context:
+  name: aom
+  version: "3.12.1"
+
+package:
+  name: ${{ name|lower }}
+  version: ${{ version }}
+
+source:
+  url: https://storage.googleapis.com/aom-releases/libaom-${{ version }}.tar.gz
+  sha256: 9e9775180dec7dfd61a79e00bda3809d43891aee6b2e331ff7f26986207ea22e
+  patches:
+    # Ship libaom as a shared library only. The aom_static target is still built
+    # (the aom_av1_rc helper links libaom's internal, non-exported symbols from
+    # it) but is renamed and excluded from `install`, so no static archive is
+    # shipped; the shared library's import library keeps the name "aom" on Windows.
+    - 0001-Do-not-install-the-static-aom-library.patch
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - ${{ compiler('c') }}
+    - ${{ stdlib("c") }}
+    - ${{ compiler('cxx') }}
+    - cmake
+    - perl
+    - nasm
+    - if: unix
+      then: make
+  run_exports:
+    - ${{ pin_subpackage('aom', upper_bound='x.x') }}
+
+tests:
+  - script:
+      - if: build_platform == target_platform
+        then: aomenc --help
+      - if: build_platform == target_platform
+        then: aomdec --help
+      - if: unix
+        then: test -f ${PREFIX}/include/aom/aom.h
+      - if: unix
+        then: test -f ${PREFIX}/lib/libaom${SHLIB_EXT}
+      - if: unix
+        then: test ! -f ${PREFIX}/lib/libaom.a
+      - if: unix
+        then: test -f ${PREFIX}/lib/pkgconfig/aom.pc
+      - if: win
+        then: if not exist %LIBRARY_INC%\\aom\\aom.h exit 1
+      - if: win
+        then: if not exist %LIBRARY_BIN%\\aom.dll exit 1
+
+about:
+  license: BSD-2-Clause
+  license_file: LICENSE
+  summary: Alliance for Open Media video codec
+  description: |
+    AOMedia Video 1 (AV1), is an open, royalty-free video coding format designed for
+    video transmissions over the Internet.
+  homepage: https://aomedia.org/
+  repository: https://aomedia.googlesource.com/aom/
+
+extra:
+  recipe-maintainers:
+    - matthiasdiener
+    - "0xbe7a"

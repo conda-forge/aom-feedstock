@@ -1,0 +1,64 @@
+From ccc9417210bb076e8406d4fc994e1eb381350b80 Mon Sep 17 00:00:00 2001
+From: conda-forge <conda@conda-forge.org>
+Date: Thu, 4 Jun 2026 13:16:59 +0200
+Subject: [PATCH] Do not install the static aom library
+
+The static library is needed at build time so that aom_av1_rc can link
+libaom's internal (non-exported) symbols, but it should not be shipped.
+Keep the aom_static target, give it a distinct output name to avoid an
+import-library name collision on Windows, keep the shared library's import
+library named 'aom', and exclude the static archive from installation.
+---
+ CMakeLists.txt                | 16 +++++++++-------
+ build/cmake/aom_install.cmake |  8 +++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 50b4261..8626f31 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -284,13 +284,15 @@ add_library(aom ${target_objs_aom} $<TARGET_OBJECTS:aom_rtcd>)
+ 
+ if(BUILD_SHARED_LIBS)
+   add_library(aom_static STATIC ${target_objs_aom} $<TARGET_OBJECTS:aom_rtcd>)
+-  set_target_properties(aom_static PROPERTIES OUTPUT_NAME aom)
+-  if(MSVC OR (WIN32 AND NOT MINGW))
+-    # Fix race condition between the import library and the static library.
+-    # Affects MSVC in all three flavors (stock, clang-cl, LLVM -- the latter
+-    # sets MSVC and MINGW both to FALSE).
+-    set_target_properties(aom PROPERTIES ARCHIVE_OUTPUT_NAME "aom_dll")
+-  endif()
++  # conda-forge: the aom_static target is required internally because aom_av1_rc
++  # links against libaom's non-exported (internal) symbols, which are only
++  # available from the static archive. However we do not want to ship a static
++  # library. Give aom_static a distinct output name so it does not collide with
++  # the shared library's import library, and (unlike upstream) do NOT rename the
++  # shared library's import library to "aom_dll" -- keep it "aom" so downstream
++  # consumers continue to link against "aom". The static archive itself is
++  # excluded from the install step (see build/cmake/aom_install.cmake).
++  set_target_properties(aom_static PROPERTIES OUTPUT_NAME aom_static)
+ 
+   if(NOT MSVC)
+     # Extract version string and set VERSION/SOVERSION for the aom target.
+diff --git a/build/cmake/aom_install.cmake b/build/cmake/aom_install.cmake
+index d16df97..31d5e56 100644
+--- a/build/cmake/aom_install.cmake
++++ b/build/cmake/aom_install.cmake
+@@ -78,11 +78,9 @@ macro(setup_aom_install_targets)
+       endif()
+     endif()
+ 
+-    if(BUILD_SHARED_LIBS)
+-      set(AOM_INSTALL_LIBS aom aom_static)
+-    else()
+-      set(AOM_INSTALL_LIBS aom)
+-    endif()
++    # conda-forge: never install the static library; aom_static is built only
++    # so that aom_av1_rc can link libaom's internal symbols (see CMakeLists.txt).
++    set(AOM_INSTALL_LIBS aom)
+ 
+     # Setup the install rules. install() will automatically prepend
+     # CMAKE_INSTALL_PREFIX to relative paths
+-- 
+2.50.1 (Apple Git-155)
+

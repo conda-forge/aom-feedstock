@@ -17,8 +17,7 @@ cmake ${CMAKE_ARGS}                                   \
       -DENABLE_TESTS=OFF                              \
       ..
 
-# Parallel build fails spuriously, so only build in serial
-make
+make -j${CPU_COUNT}
 
 # beware, tests are expensive (data downloads & many of them, some fairly slow)
 # to enable: set cmake above, uncomment python in meta.yaml, uncomment below
