@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: aom
-  version: "3.12.1"
+  version: "3.14.1"
 
 package:
   name: ${{ name|lower }}
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://storage.googleapis.com/aom-releases/libaom-${{ version }}.tar.gz
-  sha256: 9e9775180dec7dfd61a79e00bda3809d43891aee6b2e331ff7f26986207ea22e
+  sha256: 44bf90dbd23e734d50e70a8c41c285193922938bd0d3bc2ee56764d181d55ef5
   patches:
     # Ship libaom as a shared library only. The aom_static target is still built
     # (the aom_av1_rc helper links libaom's internal, non-exported symbols from
@@ -37,22 +37,19 @@ requirements:
 tests:
   - script:
       - if: build_platform == target_platform
-        then: aomenc --help
-      - if: build_platform == target_platform
-        then: aomdec --help
+        then:
+          - aomenc --help
+          - aomdec --help
       - if: unix
-        then: test -f ${PREFIX}/include/aom/aom.h
-      - if: unix
-        then: test -f ${PREFIX}/lib/libaom${SHLIB_EXT}
-      - if: unix
-        then: test ! -f ${PREFIX}/lib/libaom.a
-      - if: unix
-        then: test -f ${PREFIX}/lib/pkgconfig/aom.pc
+        then:
+          - test -f ${PREFIX}/include/aom/aom.h
+          - test -f ${PREFIX}/lib/libaom${SHLIB_EXT}
+          - test ! -f ${PREFIX}/lib/libaom.a
+          - test -f ${PREFIX}/lib/pkgconfig/aom.pc
       - if: win
-        then: if not exist %LIBRARY_INC%\\aom\\aom.h exit 1
-      - if: win
-        then: if not exist %LIBRARY_BIN%\\aom.dll exit 1
-
+        then:
+          - if not exist %LIBRARY_INC%\\aom\\aom.h exit 1
+          - if not exist %LIBRARY_BIN%\\aom.dll exit 1
 about:
   license: BSD-2-Clause
   license_file: LICENSE

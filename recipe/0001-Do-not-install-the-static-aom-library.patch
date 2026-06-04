@@ -1,4 +1,4 @@
-From ccc9417210bb076e8406d4fc994e1eb381350b80 Mon Sep 17 00:00:00 2001
+From c13862ce5927755e5836593323c3b8ec44b820d3 Mon Sep 17 00:00:00 2001
 From: conda-forge <conda@conda-forge.org>
 Date: Thu, 4 Jun 2026 13:16:59 +0200
 Subject: [PATCH] Do not install the static aom library
@@ -9,18 +9,18 @@ Keep the aom_static target, give it a distinct output name to avoid an
 import-library name collision on Windows, keep the shared library's import
 library named 'aom', and exclude the static archive from installation.
 ---
- CMakeLists.txt                | 16 +++++++++-------
- build/cmake/aom_install.cmake |  8 +++-----
+ CMakeLists.txt          | 16 +++++++++-------
+ cmake/aom_install.cmake |  8 +++-----
  2 files changed, 12 insertions(+), 12 deletions(-)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 50b4261..8626f31 100644
+index 2bccc36..be56e9d 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -284,13 +284,15 @@ add_library(aom ${target_objs_aom} $<TARGET_OBJECTS:aom_rtcd>)
- 
+@@ -328,13 +328,15 @@ target_include_directories(aom PUBLIC $<INSTALL_INTERFACE:include>)
  if(BUILD_SHARED_LIBS)
    add_library(aom_static STATIC ${target_objs_aom} $<TARGET_OBJECTS:aom_rtcd>)
+   target_include_directories(aom_static PUBLIC $<INSTALL_INTERFACE:include>)
 -  set_target_properties(aom_static PROPERTIES OUTPUT_NAME aom)
 -  if(MSVC OR (WIN32 AND NOT MINGW))
 -    # Fix race condition between the import library and the static library.
@@ -35,16 +35,16 @@ index 50b4261..8626f31 100644
 +  # the shared library's import library, and (unlike upstream) do NOT rename the
 +  # shared library's import library to "aom_dll" -- keep it "aom" so downstream
 +  # consumers continue to link against "aom". The static archive itself is
-+  # excluded from the install step (see build/cmake/aom_install.cmake).
++  # excluded from the install step (see cmake/aom_install.cmake).
 +  set_target_properties(aom_static PROPERTIES OUTPUT_NAME aom_static)
  
    if(NOT MSVC)
      # Extract version string and set VERSION/SOVERSION for the aom target.
-diff --git a/build/cmake/aom_install.cmake b/build/cmake/aom_install.cmake
-index d16df97..31d5e56 100644
---- a/build/cmake/aom_install.cmake
-+++ b/build/cmake/aom_install.cmake
-@@ -78,11 +78,9 @@ macro(setup_aom_install_targets)
+diff --git a/cmake/aom_install.cmake b/cmake/aom_install.cmake
+index a8f6d64..1cbb6f9 100644
+--- a/cmake/aom_install.cmake
++++ b/cmake/aom_install.cmake
+@@ -80,11 +80,9 @@ macro(setup_aom_install_targets)
        endif()
      endif()
  
@@ -57,8 +57,8 @@ index d16df97..31d5e56 100644
 +    # so that aom_av1_rc can link libaom's internal symbols (see CMakeLists.txt).
 +    set(AOM_INSTALL_LIBS aom)
  
-     # Setup the install rules. install() will automatically prepend
-     # CMAKE_INSTALL_PREFIX to relative paths
+     set(AOM_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+     set(AOM_VERSION_CONFIG
 -- 
 2.50.1 (Apple Git-155)
 
