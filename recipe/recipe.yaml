@@ -19,7 +19,7 @@ source:
     - 0001-Do-not-install-the-static-aom-library.patch
 
 build:
-  number: 0
+  number: 1
 
 requirements:
   build:
