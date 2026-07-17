@@ -3,7 +3,7 @@
 mkdir ..\build-stage
 cd ..\build-stage
 
-cmake -G "NMake Makefiles"                           ^
+cmake %CMAKE_ARGS% -G "NMake Makefiles"                           ^
       -DCMAKE_BUILD_TYPE="Release"                   ^
       -DCMAKE_INSTALL_PREFIX:PATH="%LIBRARY_PREFIX%" ^
       -DCMAKE_INSTALL_LIBDIR="lib"                   ^
