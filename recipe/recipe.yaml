@@ -2,7 +2,7 @@ schema_version: 1
 
 context:
   name: aom
-  version: "3.15.0"
+  version: "3.15.1"
 
 package:
   name: ${{ name|lower }}
@@ -10,7 +10,7 @@ package:
 
 source:
   url: https://storage.googleapis.com/aom-releases/libaom-${{ version }}.tar.gz
-  sha256: ea08c38ecc078bc85bb1b691020e52b06250f1a81fe7ca5b624629225081af96
+  sha256: 8ca0c52746174603500f0adb6f2a215d69c9ca2aab2acb3caa06fb791d8d01bf
   patches:
     # Ship libaom as a shared library only. The aom_static target is still built
     # (the aom_av1_rc helper links libaom's internal, non-exported symbols from
